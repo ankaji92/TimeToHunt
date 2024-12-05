@@ -69,7 +69,7 @@ export default function CategoryManagement() {
   return (
     <Paper sx={{ maxWidth: 936, margin: 'auto', overflow: 'hidden' }}>
       <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h5">カテゴリー管理</Typography>
+        <Typography variant="h5">カテゴリ管理</Typography>
         <Button 
           variant="contained" 
           onClick={() => {
@@ -77,14 +77,14 @@ export default function CategoryManagement() {
             setOpenDialog(true);
           }}
         >
-          新規カテゴリー
+          新規カテゴリ
         </Button>
       </Box>
       <TableContainer>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>カテゴリー名</TableCell>
+              <TableCell>カテゴリ名</TableCell>
               <TableCell>説明</TableCell>
               <TableCell>操作</TableCell>
             </TableRow>

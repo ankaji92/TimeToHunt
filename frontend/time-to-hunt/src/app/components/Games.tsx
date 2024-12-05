@@ -4,11 +4,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid2';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
-import SearchIcon from '@mui/icons-material/Search';
-import RefreshIcon from '@mui/icons-material/Refresh';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -24,37 +20,25 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import StopIcon from '@mui/icons-material/Stop';
 import CheckIcon from '@mui/icons-material/Check';
-import Header from './Header';
-import Navigator from './Navigator';
 import { Box, Tabs, Tab } from '@mui/material';
-import { Game, GameCategory, GameStatus } from '@/app/types/game';
+import { Game, GameCategory } from '@/app/types/game';
+import CategoryDialog from './CategoryDialog';
 
-interface ContentProps {
-  selectedCategoryId: number | null;
-  onCategorySelect: (categoryId: number | null) => void;
-}
-
-export default function Content({ selectedCategoryId, onCategorySelect }: ContentProps) {
+export default function Games() {
   const [games, setGames] = React.useState<Game[]>([]);
   const [openNewGame, setOpenNewGame] = React.useState(false);
+  const [openNewCategory, setOpenNewCategory] = React.useState(false);
   const [editingGame, setEditingGame] = React.useState<Game | null>(null);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [selectedGame, setSelectedGame] = React.useState<Game | null>(null);
-  const [statusFilter, setStatusFilter] = React.useState<string | null>(null);
+  const [categories, setCategories] = React.useState<GameCategory[]>([]);
+  const [selectedCategoryId, onCategorySelect] = React.useState<number | null>(null);
 
   const filteredGames = React.useMemo(() => {
-    let filtered = games;
-    
-    if (selectedCategoryId !== null) {
-      filtered = filtered.filter(game => game.category === selectedCategoryId);
-    }
-    
-    if (statusFilter !== null) {
-      filtered = filtered.filter(game => game.status === statusFilter);
-    }
-    
-    return filtered;
-  }, [games, selectedCategoryId, statusFilter]);
+    return games.filter(game => 
+      selectedCategoryId === null || game.category === selectedCategoryId
+    );
+  }, [games, selectedCategoryId]);
 
   const handleNewGame = async (gameData: any) => {
     try {
@@ -79,6 +63,12 @@ export default function Content({ selectedCategoryId, onCategorySelect }: Conten
     fetch('http://localhost:8000/api/games/')
       .then(response => response.json())
       .then(data => setGames(data));
+  }, []);
+
+  React.useEffect(() => {
+    fetch('http://localhost:8000/api/categories/')
+      .then(response => response.json())
+      .then(data => setCategories(data));
   }, []);
 
   const getStatusText = (status: string) => {
@@ -153,35 +143,20 @@ export default function Content({ selectedCategoryId, onCategorySelect }: Conten
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Box
-        component="nav"
-        sx={{ width: 256, flexShrink: 0 }}
-      >
-        <Navigator 
-          selectedCategoryId={selectedCategoryId}
-          onCategorySelect={onCategorySelect}
-          PaperProps={{ style: { width: 256 } }}
-        />
-      </Box>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          height: '100vh',
-          overflow: 'auto',
-          backgroundColor: '#eaeff1',
-          p: 3,
-        }}
-      >
+      <Box>
         <AppBar position="static" color="default">
-          <Tabs value={statusFilter} onChange={(_, value) => setStatusFilter(value)}>
+          <Tabs 
+            value={selectedCategoryId} 
+            onChange={(_, value) => onCategorySelect(value)}
+          >
             <Tab label="全て" value={null} />
-            <Tab label="未着手" value="NOT_STARTED" />
-            <Tab label="狩猟中" value="HUNTING" />
-            <Tab label="保留中" value="PENDING" />
-            <Tab label="捕獲完了" value="CAPTURED" />
-            <Tab label="見失う" value="ESCAPED" />
+            {categories.map((category) => (
+              <Tab 
+                key={category.id} 
+                label={category.name} 
+                value={category.id} 
+              />
+            ))}
           </Tabs>
         </AppBar>
         <Paper sx={{ mt: 3, overflow: 'hidden' }}>
@@ -194,20 +169,6 @@ export default function Content({ selectedCategoryId, onCategorySelect }: Conten
             <Toolbar>
               <Grid container spacing={2} sx={{ alignItems: 'center' }}>
                 <Grid>
-                  <SearchIcon color="inherit" sx={{ display: 'block' }} />
-                </Grid>
-                <Grid>
-                  <TextField
-                    fullWidth
-                    placeholder="ゲームを検索"
-                    InputProps={{
-                      disableUnderline: true,
-                      sx: { fontSize: 'default' },
-                    }}
-                    variant="standard"
-                  />
-                </Grid>
-                <Grid>
                   <Button 
                     variant="contained" 
                     sx={{ mr: 1 }}
@@ -215,11 +176,6 @@ export default function Content({ selectedCategoryId, onCategorySelect }: Conten
                   >
                     新規ゲーム
                   </Button>
-                  <Tooltip title="更新">
-                    <IconButton>
-                      <RefreshIcon color="inherit" sx={{ display: 'block' }} />
-                    </IconButton>
-                  </Tooltip>
                 </Grid>
               </Grid>
             </Toolbar>
@@ -279,9 +235,34 @@ export default function Content({ selectedCategoryId, onCategorySelect }: Conten
             open={openNewGame}
             onClose={() => setOpenNewGame(false)}
             onSubmit={handleNewGame}
+            categories={categories}
+            onNewCategory={() => setOpenNewCategory(true)}
+            defaultCategoryId={selectedCategoryId}
+            editingGame={editingGame}
+          />
+          <CategoryDialog 
+            open={openNewCategory}
+            onClose={() => setOpenNewCategory(false)}
+            onSubmit={async (categoryData) => {
+              try {
+                const response = await fetch('http://localhost:8000/api/categories/', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(categoryData),
+                });
+                if (response.ok) {
+                  const newCategory = await response.json();
+                  setCategories([...categories, newCategory]);
+                }
+              } catch (error) {
+                console.error('Error adding category:', error);
+              }
+              setOpenNewCategory(false);
+            }}
           />
         </Paper>
       </Box>
-    </Box>
   );
 }

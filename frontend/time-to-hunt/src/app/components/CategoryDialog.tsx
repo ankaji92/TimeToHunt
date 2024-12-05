@@ -36,13 +36,13 @@ export default function CategoryDialog({ open, onClose, onSubmit, editingCategor
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        {editingCategory ? 'カテゴリーの編集' : '新規カテゴリーの追加'}
+        {editingCategory ? 'カテゴリの編集' : '新規カテゴリの追加'}
       </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
           margin="dense"
-          label="カテゴリー名"
+          label="カテゴリ名"
           fullWidth
           value={categoryData.name}
           onChange={(e) => setCategoryData({ ...categoryData, name: e.target.value })}

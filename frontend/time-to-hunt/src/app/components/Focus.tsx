@@ -106,7 +106,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
       <Typography variant="body1" color="text.secondary" paragraph>
         {activeGame.description}
       </Typography>
-      
+
       {activeGame.status === 'HUNTING' && (
         <>
           <Typography variant="h2" align="center" sx={{ my: 4 }}>
