@@ -20,9 +20,11 @@ import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import 'dayjs/locale/ja';
+import ja from 'dayjs/locale/ja';
 import { Game, GameCategory } from '@/app/types/game';
 import dayjs from 'dayjs';
+
+dayjs.locale(ja);
 
 interface NewGameDialogProps {
   open: boolean;
@@ -114,7 +116,7 @@ export default function NewGameDialog({
           label="予定所要時間（HH:MM）"
           fullWidth
           value={gameData.estimated_hunting_time}
-          onChange={(e) => setGameData({ ...gameData, estimated_hunting_time: e.target.value })}
+          onChange={(e) => setGameData({ ...gameData, estimated_hunting_time: e.target.value})}
           placeholder="01:00"
         />
 

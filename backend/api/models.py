@@ -23,12 +23,12 @@ class Game(models.Model):
     description = models.TextField(blank=True)
     category = models.ForeignKey(GameCategory, on_delete=models.SET_NULL, null=True, related_name='games')
     parent_game = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subgames')
-    
+
     # 時間関連のフィールド
     hunt_start_time = models.DateTimeField()
     estimated_hunting_time = models.DurationField(help_text="予定狩猟時間")
     actual_hunting_time = models.DurationField(null=True, blank=True, help_text="実際の狩猟時間")
-    
+
     # ステータス関連
     STATUS_CHOICES = [
         ('NOT_STARTED', '未着手'),
@@ -38,17 +38,17 @@ class Game(models.Model):
         ('ESCAPED', '見失う'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='NOT_STARTED')
-    
+
     # 優先度
     priority = models.IntegerField(
         default=1,
         validators=[MinValueValidator(1)],
         help_text="優先度（1が最高優先）"
     )
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     is_active = models.BooleanField(
         default=False,
         help_text="現在狩猟中のゲームかどうか"
@@ -57,7 +57,7 @@ class Game(models.Model):
         default=True,
         help_text="最小単位のゲームかどうか"
     )
-    
+
     deadline = models.DateTimeField(
         null=True,
         blank=True,
@@ -69,15 +69,15 @@ class Game(models.Model):
         """自身または任意の子ゲームが狩猟中の場合にTrueを返す"""
         if self.is_active:
             return True
-            
+
         children = self.subgames.all()
         if not children:
             return False
-            
+
         for child in children:
             if child.is_active_with_children:
                 return True
-                
+
         return False
 
     @property
@@ -119,7 +119,7 @@ class Game(models.Model):
         # 新規作成時はis_leaf_gameをTrueに設定
         if not self.pk:
             self.is_leaf_game = True
-        
+
         # 既存レコードの場合、状態変更の処理
         if self.pk:
             old_instance = Game.objects.get(pk=self.pk)
@@ -156,7 +156,7 @@ class Game(models.Model):
         # 期限の自動設定
         if not self.deadline and self.hunt_start_time and self.estimated_hunting_time:
             self.deadline = self.hunt_start_time + self.estimated_hunting_time
-        
+
         super().save(*args, **kwargs)
 
         # 親ゲームの更新

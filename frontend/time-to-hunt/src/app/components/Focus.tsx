@@ -41,8 +41,9 @@ export default function Focus({ onStatusChange }: FocusProps) {
     if (!activeGame || activeGame.status !== 'HUNTING') return;
 
     const startTime = dayjs(activeGame.hunt_start_time);
-    const estimatedTime = dayjs.duration(activeGame.estimated_hunting_time).asMilliseconds();
-    const endTime = startTime.add(estimatedTime, 'millisecond');
+    const [hours, minutes, seconds] = activeGame.estimated_hunting_time.split(':').map(Number);
+    const estimatedTime = dayjs.duration({hours, minutes, seconds});
+    const endTime = startTime.add(estimatedTime);
 
     const timer = setInterval(() => {
       const now = dayjs();

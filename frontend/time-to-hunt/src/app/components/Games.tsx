@@ -41,6 +41,7 @@ export default function Games() {
   }, [games, selectedCategoryId]);
 
   const handleNewGame = async (gameData: any) => {
+    gameData.estimated_hunting_time = gameData.estimated_hunting_time + ':00';
     try {
       const response = await fetch('http://localhost:8000/api/games/', {
         method: 'POST',
