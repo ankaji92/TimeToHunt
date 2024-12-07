@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import Games from './components/Games';
+import SpeciesList from './components/Species';
 
 export default function App() {
-  return <Games />;
+  return <SpeciesList />;
 }

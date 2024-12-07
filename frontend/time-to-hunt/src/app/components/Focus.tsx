@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Paper, Typography, LinearProgress, Button } from '@mui/material';
+import { Box, Paper, Typography, LinearProgress, Button, ButtonGroup } from '@mui/material';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
@@ -50,7 +50,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
       const remaining = endTime.diff(now);
       
       if (remaining <= 0) {
-        setRemainingTime('時間切れ');
+        setRemainingTime('Time\'s up');
         setProgress(100);
         clearInterval(timer);
       } else {
@@ -82,7 +82,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
 
       if (response.ok) {
         onStatusChange(activeGame.id, newStatus);
-        fetchActiveGame();  // アクティブゲームを再取得
+        fetchActiveGame();  // Re-fetch the active game
       }
     } catch (error) {
       console.error('Error updating game status:', error);
@@ -93,64 +93,55 @@ export default function Focus({ onStatusChange }: FocusProps) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography variant="h5">
-          現在フォーカスしているゲームはありません
+          No game currently in focus
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Paper sx={{ p: 3, maxWidth: 600, margin: 'auto', mt: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        {activeGame.title}
-      </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph>
-        {activeGame.description}
-      </Typography>
-
-      {activeGame.status === 'HUNTING' && (
-        <>
-          <Typography variant="h2" align="center" sx={{ my: 4 }}>
-            {remainingTime}
-          </Typography>
-          <LinearProgress 
-            variant="determinate" 
-            value={progress} 
-            sx={{ height: 10, borderRadius: 5 }}
-          />
-          <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<CheckIcon />}
-              onClick={() => handleStatusChange('CAPTURED')}
-            >
-              捕獲完了
-            </Button>
-            <Button
-              variant="contained"
-              color="error"
-              startIcon={<StopIcon />}
-              onClick={() => handleStatusChange('ESCAPED')}
-            >
-              見失う
-            </Button>
-          </Box>
-        </>
-      )}
-      
-      {activeGame.status === 'NOT_STARTED' && (
-        <Box sx={{ mt: 3, textAlign: 'center' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<PlayArrowIcon />}
-            onClick={() => handleStatusChange('HUNTING')}
-          >
-            狩猟開始
-          </Button>
-        </Box>
-      )}
-    </Paper>
+    <Box>
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h5" gutterBottom>
+          Currently Active Game
+        </Typography>
+        <Typography variant="body1">
+          Title: {activeGame.species_title}
+        </Typography>
+        <Typography variant="body1">
+          Status: {activeGame.status}
+        </Typography>
+        <Typography variant="body1">
+          Remaining Time: {activeGame.remaining_time}
+        </Typography>
+        {/* ... other information display ... */}
+      </Paper>
+      <ButtonGroup variant="contained">
+        <Button
+          onClick={() => handleStatusChange('HUNTING')}
+          disabled={activeGame.status === 'HUNTING'}
+        >
+          Start Hunting
+        </Button>
+        <Button
+          onClick={() => handleStatusChange('PENDING')}
+          disabled={activeGame.status === 'PENDING'}
+        >
+          Pause
+        </Button>
+        <Button
+          onClick={() => handleStatusChange('CAPTURED')}
+          disabled={activeGame.status === 'CAPTURED'}
+        >
+          Complete
+        </Button>
+        <Button
+          onClick={() => handleStatusChange('ESCAPED')}
+          disabled={activeGame.status === 'ESCAPED'}
+        >
+          Give Up
+        </Button>
+      </ButtonGroup>
+    </Box>
   );
 } 

@@ -31,7 +31,7 @@ export default function Navigator({ ...other }: DrawerProps) {
               onClick={() => router.push('/')}
             >
               <ListItemIcon><DnsRoundedIcon /></ListItemIcon>
-              <ListItemText>Games</ListItemText>
+              <ListItemText>Species</ListItemText>
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>

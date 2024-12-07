@@ -1,11 +1,12 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import Sum
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 
 
-class GameCategory(models.Model):
+class Genus(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -15,19 +16,77 @@ class GameCategory(models.Model):
         return self.name
 
     class Meta:
-        verbose_name_plural = "Game Categories"
+        verbose_name_plural = "Genera"
+
+
+class Species(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+    genus = models.ForeignKey(Genus, on_delete=models.CASCADE, null=True, related_name='species')
+    parent_species = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='subspecies'
+    )
+    priority = models.IntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        help_text="Priority (1 is highest)"
+    )
+    estimated_hunting_time = models.DurationField(
+        help_text="Estimated hunting time"
+    )
+    is_leaf_species = models.BooleanField(
+        default=True,
+        help_text="Whether this is a leaf species"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+    def aggregate_hunting_time(self):
+        """統一されたインターフェースとしての推定所要時間"""
+        if self.is_leaf_species:
+            return self.estimated_hunting_time
+
+        total_time = timedelta()
+        for subspecies in self.subspecies.all():
+            if subspecies.estimated_hunting_time:
+                total_time += subspecies.estimated_hunting_time
+        self.estimated_hunting_time = total_time
+        return self.estimated_hunting_time
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.is_leaf_species = True
+            super().save(*args, **kwargs)
+            return
+
+        self.is_leaf_species = not self.subspecies.exists()
+        if not self.is_leaf_species:
+            self.aggregate_hunting_time()
+
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name_plural = "Species"
 
 
 class Game(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
-    category = models.ForeignKey(GameCategory, on_delete=models.SET_NULL, null=True, related_name='games')
-    parent_game = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subgames')
+    species = models.ForeignKey(Species, on_delete=models.CASCADE, related_name='games')
 
     # 時間関連のフィールド
     hunt_start_time = models.DateTimeField()
-    estimated_hunting_time = models.DurationField(help_text="予定狩猟時間")
-    actual_hunting_time = models.DurationField(null=True, blank=True, help_text="実際の狩猟時間")
+    actual_hunting_time = models.DurationField(
+        null=True,
+        blank=True,
+        help_text="実際の所要時間"
+    )
 
     # ステータス関連
     STATUS_CHOICES = [
@@ -37,13 +96,10 @@ class Game(models.Model):
         ('CAPTURED', '捕獲完了'),
         ('ESCAPED', '見失う'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='NOT_STARTED')
-
-    # 優先度
-    priority = models.IntegerField(
-        default=1,
-        validators=[MinValueValidator(1)],
-        help_text="優先度（1が最高優先）"
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='NOT_STARTED'
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -53,10 +109,6 @@ class Game(models.Model):
         default=False,
         help_text="現在狩猟中のゲームかどうか"
     )
-    is_leaf_game = models.BooleanField(
-        default=True,
-        help_text="最小単位のゲームかどうか"
-    )
 
     deadline = models.DateTimeField(
         null=True,
@@ -65,38 +117,9 @@ class Game(models.Model):
     )
 
     @property
-    def is_active_with_children(self):
-        """自身または任意の子ゲームが狩猟中の場合にTrueを返す"""
-        if self.is_active:
-            return True
-
-        children = self.subgames.all()
-        if not children:
-            return False
-
-        for child in children:
-            if child.is_active_with_children:
-                return True
-
-        return False
-
-    @property
-    def calculated_hunting_time(self):
-        """子ゲームがある場合は合計時間を、ない場合は設定された狩猟時間を返す"""
-        if self.is_leaf_game:
-            return self.estimated_hunting_time
-        subgame_time = self.subgames.aggregate(
-            total=Sum('estimated_hunting_time'))['total'] or timedelta()
-        return subgame_time
-
-    @property
-    def calculated_actual_hunting_time(self):
-        """子ゲームがある場合は実際の狩猟時間の合計を、ない場合は設定された実際の狩猟時間を返す"""
-        if self.is_leaf_game:
-            return self.actual_hunting_time or timedelta()
-        subgame_actual_time = self.subgames.aggregate(
-            total=Sum('actual_hunting_time'))['total'] or timedelta()
-        return subgame_actual_time
+    def estimated_hunting_time(self):
+        """種から推定所要時間を取得"""
+        return self.species.estimated_hunting_time
 
     @property
     def is_expired(self):
@@ -116,60 +139,54 @@ class Game(models.Model):
         return self.deadline - now
 
     def save(self, *args, **kwargs):
-        # 新規作成時はis_leaf_gameをTrueに設定
-        if not self.pk:
-            self.is_leaf_game = True
-
-        # 既存レコードの場合、状態変更の処理
-        if self.pk:
-            old_instance = Game.objects.get(pk=self.pk)
-            # HUNTINGから他のステータスに変更される場合
-            if old_instance.status == 'HUNTING' and self.status != 'HUNTING':
-                # CAPTUREDまたはESCAPEDに明示的に変更される場合を除き、PENDINGに設定
-                if self.status not in ['CAPTURED', 'ESCAPED']:
-                    self.status = 'PENDING'
-
         # statusとis_activeの同期
         if self.status == 'HUNTING':
             self.is_active = True
         else:
             self.is_active = False
 
-        # 既存のレコードの場合のみ子ゲームの存在チェック
-        if self.pk and self.subgames.exists():
-            self.is_leaf_game = False
-            self.estimated_hunting_time = self.calculated_hunting_time
-            self.actual_hunting_time = self.calculated_actual_hunting_time
-        else:
-            self.is_leaf_game = True
+        # 期限の自動設定
+        if not self.deadline and self.hunt_start_time:
+            self.deadline = self.hunt_start_time + self.estimated_hunting_time
 
         # アクティブ状態の処理（他のアクティブなゲームを非アクティブにする）
         if self.is_active:
             Game.objects.filter(
-                is_active=True, 
-                is_leaf_game=True
+                is_active=True
             ).exclude(pk=self.pk).update(
                 is_active=False,
-                status='PENDING'  # 他のアクティブなゲームはPENDINGに変更
+                status='PENDING'
             )
-
-        # 期限の自動設定
-        if not self.deadline and self.hunt_start_time and self.estimated_hunting_time:
-            self.deadline = self.hunt_start_time + self.estimated_hunting_time
 
         super().save(*args, **kwargs)
 
-        # 親ゲームの更新
-        if self.parent_game:
-            self.parent_game.save()
+    def __str__(self):
+        return f"{self.species.title} ({self.get_status_display()})"
 
-    class Meta:
-        ordering = ['priority', 'hunt_start_time']
-        constraints = [
-            models.CheckConstraint(
-                check=models.Q(is_active=False) | (
-                    models.Q(is_active=True) & models.Q(is_leaf_game=True)
-                ),
-                name='only_leaf_game_can_be_active'
-            )
-        ]
+
+@receiver(post_save, sender=Species)
+def update_parent_species(sender, instance, created, **kwargs):
+    """Update parent species when a subspecies is created or updated"""
+    """Note: parentに対してsaveメソッドを呼ぶことで、親の親も再帰的に更新される"""
+    if instance.parent_species:
+        parent = instance.parent_species
+        parent.save()
+
+
+@receiver(post_delete, sender=Species)
+def handle_deleted_species(sender, instance, **kwargs):
+    """Update parent species when a subspecies is deleted"""
+    # CASCADEで削除されるので、親Speciesが存在するか確認
+    def safe_get_parent(sp):
+        try:
+            parent = sp.parent_species
+            return parent, parent is not None
+        except Species.DoesNotExist:
+            return None, False
+
+    parent, parent_exists = safe_get_parent(instance)
+    if parent_exists:
+        # 他の子Speciesがないか確認
+        if not parent.subspecies.exclude(pk=instance.pk).exists():
+            parent.is_leaf_species = True
+        parent.save()

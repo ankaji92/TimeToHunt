@@ -5,62 +5,63 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
+import { Genus } from '@/app/types/game';
 
-interface CategoryDialogProps {
+interface GenusDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (categoryData: any) => void;
-  editingCategory?: GameCategory | null;
+  onSubmit: (genusData: any) => void;
+  editingGenus?: Genus | null;
 }
 
-export default function CategoryDialog({ open, onClose, onSubmit, editingCategory }: CategoryDialogProps) {
-  const [categoryData, setCategoryData] = React.useState({
+export default function GenusDialog({ open, onClose, onSubmit, editingGenus }: GenusDialogProps) {
+  const [genusData, setGenusData] = React.useState({
     name: '',
     description: '',
   });
 
   React.useEffect(() => {
-    if (editingCategory) {
-      setCategoryData({
-        name: editingCategory.name,
-        description: editingCategory.description,
+    if (editingGenus) {
+      setGenusData({
+        name: editingGenus.name,
+        description: editingGenus.description,
       });
     }
-  }, [editingCategory]);
+  }, [editingGenus]);
 
   const handleSubmit = () => {
-    onSubmit(categoryData);
+    onSubmit(genusData);
     onClose();
   };
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        {editingCategory ? 'カテゴリの編集' : '新規カテゴリの追加'}
+        {editingGenus ? 'Edit Genre' : 'Add New Genre'}
       </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
           margin="dense"
-          label="カテゴリ名"
+          label="Genre Name"
           fullWidth
-          value={categoryData.name}
-          onChange={(e) => setCategoryData({ ...categoryData, name: e.target.value })}
+          value={genusData.name}
+          onChange={(e) => setGenusData({ ...genusData, name: e.target.value })}
         />
         <TextField
           margin="dense"
-          label="説明"
+          label="Description"
           fullWidth
           multiline
           rows={4}
-          value={categoryData.description}
-          onChange={(e) => setCategoryData({ ...categoryData, description: e.target.value })}
+          value={genusData.description}
+          onChange={(e) => setGenusData({ ...genusData, description: e.target.value })}
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>キャンセル</Button>
+        <Button onClick={onClose}>Cancel</Button>
         <Button onClick={handleSubmit} variant="contained">
-          {editingCategory ? '更新' : '追加'}
+          {editingGenus ? 'Update' : 'Add'}
         </Button>
       </DialogActions>
     </Dialog>
