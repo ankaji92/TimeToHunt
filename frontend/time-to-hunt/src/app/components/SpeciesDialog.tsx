@@ -86,31 +86,6 @@ export default function SpeciesDialog({
     }
   }, [parentSpecies]);
 
-  // 新規Genusの追加ハンドラー
-  const handleGenusSubmit = async (genusData: any) => {
-    try {
-      const response = await fetch('http://localhost:8000/api/genera/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(genusData),
-      });
-      
-      if (response.ok) {
-        const newGenus = await response.json();
-        // 新しいGenusを選択状態にする
-        setSpeciesData({ ...speciesData, genus: newGenus.id });
-        // 親コンポーネントのgenera配列を更新するために再フェッチを促す
-        const genusResponse = await fetch('http://localhost:8000/api/genera/');
-        const updatedGenera = await genusResponse.json();
-        onGeneraChange(updatedGenera);
-      }
-    } catch (error) {
-      console.error('Error adding new genus:', error);
-    }
-  };
-
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -200,10 +175,9 @@ export default function SpeciesDialog({
       <GenusDialog
         open={openGenusDialog}
         onClose={() => setOpenGenusDialog(false)}
-        onSubmit={(genusData) => {
-          handleGenusSubmit(genusData);
-          setOpenGenusDialog(false);
-        }}
+        onGeneraChange={onGeneraChange}
+        genera={genera}
+        editingGenusId={null}
       />
     </>
   );

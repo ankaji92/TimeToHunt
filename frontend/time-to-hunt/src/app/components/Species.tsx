@@ -1,9 +1,6 @@
 import * as React from 'react';
 import {
   Paper,
-  AppBar,
-  Tabs,
-  Tab,
   Toolbar,
   Button,
   TableContainer,
@@ -15,14 +12,8 @@ import {
   IconButton,
   Box,
   Tooltip,
-  Collapse,
   Snackbar,
   Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -31,9 +22,9 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from '@mui/icons-material/Close';
-import { Species, Genus, Game } from '../types/game';
+import { Species, Genus } from '../types/game';
 import SpeciesDialog from './SpeciesDialog';
+import Genera from './Genera';
 
 interface SpeciesRowProps {
   species: Species;
@@ -125,7 +116,6 @@ export default function SpeciesList() {
   const [parentSpecies, setParentSpecies] = React.useState<Species | null>(null);
   const [snackbarOpen, setSnackbarOpen] = React.useState(false);
   const [encounterSpecies, setEncounterSpecies] = React.useState<Species | null>(null);
-  const [deleteGenusId, setDeleteGenusId] = React.useState<number | null>(null);
 
   // ジャンル一覧の取得
   React.useEffect(() => {
@@ -234,79 +224,15 @@ export default function SpeciesList() {
     setOpenNewSpecies(true);
   };
 
-  // Genus削除のハンドラーを追加
-  const handleDeleteGenus = async (genusId: number) => {
-    setDeleteGenusId(genusId);
-  };
-
-  const confirmDeleteGenus = async () => {
-    if (deleteGenusId === null) return;
-
-    try {
-      const response = await fetch(`http://localhost:8000/api/genera/${deleteGenusId}/`, {
-        method: 'DELETE',
-      });
-      
-      if (response.ok) {
-        setGenera(genera.filter(g => g.id !== deleteGenusId));
-        if (selectedGenusId === deleteGenusId) {
-          setSelectedGenusId(null);
-        }
-      }
-    } catch (error) {
-      console.error('Error deleting genus:', error);
-    }
-    setDeleteGenusId(null);
-  };
-
   return (
     <>
       <Paper sx={{ maxWidth: 936, margin: 'auto', overflow: 'hidden' }}>
-        <AppBar position="static" color="default">
-          <Tabs 
-            value={selectedGenusId} 
-            onChange={(_, value) => setSelectedGenusId(value)}
-          >
-            <Tab label="All" value={null} />
-            {genera.map((genus) => (
-              <Box
-                key={genus.id}
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center',
-                  '& .delete-button': {
-                    display: 'none'
-                  },
-                  '&:hover .delete-button': {
-                    display: 'block'
-                  }
-                }}
-              >
-                <Tab 
-                  label={genus.name}
-                  value={genus.id}
-                />
-                <IconButton
-                  size="small"
-                  className="delete-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteGenus(genus.id);
-                  }}
-                  sx={{
-                    m: 0,
-                    p: 0,
-                    '&:hover': {
-                      color: 'error.main'
-                    }
-                  }}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
-          </Tabs>
-        </AppBar>
+        <Genera
+          genera={genera}
+          selectedGenusId={selectedGenusId}
+          onSelectGenus={setSelectedGenusId}
+          onGeneraChange={setGenera}
+        />
         <Toolbar>
           <Button
             variant="contained"
@@ -376,24 +302,6 @@ export default function SpeciesList() {
           {encounterSpecies && `"${encounterSpecies.title}" has been added to your schedule!`}
         </Alert>
       </Snackbar>
-
-      <Dialog
-        open={deleteGenusId !== null}
-        onClose={() => setDeleteGenusId(null)}
-      >
-        <DialogTitle>Delete Genus</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this genus? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteGenusId(null)}>Cancel</Button>
-          <Button onClick={confirmDeleteGenus} color="error" autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 }
