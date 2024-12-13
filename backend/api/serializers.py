@@ -34,6 +34,7 @@ class GameSerializer(serializers.ModelSerializer):
     estimated_hunting_time = serializers.DurationField(read_only=True)
     remaining_time = serializers.DurationField(read_only=True)
     is_expired = serializers.BooleanField(read_only=True)
+    is_leaf_game = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Game

@@ -145,14 +145,20 @@ class Game(models.Model):
         if now > self.deadline:
             return timedelta()
         return self.deadline - now
+    
+    @property
+    def is_leaf_game(self):
+        """葉のGameかどうかを確認"""
+        return self.child_games.count() == 0
 
     def save(self, *args, **kwargs):
         if self.status == 'HUNTING' and self.child_games.count() == 0:
             self.is_active = True
             Game.objects.filter(
-                is_active=True
+                status='HUNTING',
             ).exclude(pk=self.pk).update(
-                is_active=False
+                is_active=False,
+                status='PENDING'
             )
         else:
             self.is_active = False

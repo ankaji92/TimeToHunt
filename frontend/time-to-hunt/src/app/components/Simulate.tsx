@@ -70,14 +70,14 @@ function GameRow({ game, games, level, onStart, onPause, onComplete, onDelete }:
         <TableCell>{game.deadline ? dayjs(game.deadline).format('HH:mm:ss') : '-'}</TableCell>
         <TableCell>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {(game.status === 'NOT_STARTED' || game.status === 'PENDING') && (
+            {(game.is_leaf_game && game.status === 'NOT_STARTED' || game.status === 'PENDING') && (
               <Tooltip title="Start">
                 <IconButton onClick={() => onStart(game.id)}>
                   <PlayArrowIcon />
                 </IconButton>
               </Tooltip>
             )}
-            {game.status === 'HUNTING' && (
+            {(game.is_leaf_game && game.status === 'HUNTING') && (
               <>
                 <Tooltip title="Pause">
                   <IconButton onClick={() => onPause(game.id)}>

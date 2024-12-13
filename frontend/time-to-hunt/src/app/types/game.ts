@@ -30,6 +30,7 @@ export interface Game {
     actual_hunting_time?: string;
     status: 'NOT_STARTED' | 'HUNTING' | 'PENDING' | 'CAPTURED' | 'ESCAPED';
     is_active: boolean;
+    is_leaf_game: boolean;
     deadline?: string;
     estimated_hunting_time: string;
     remaining_time?: string;

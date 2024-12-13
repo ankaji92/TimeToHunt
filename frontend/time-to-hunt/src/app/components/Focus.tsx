@@ -3,7 +3,7 @@ import { Box, Paper, Typography, LinearProgress, Button, ButtonGroup } from '@mu
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import StopIcon from '@mui/icons-material/Stop';
+import PauseIcon from '@mui/icons-material/Pause';
 import CheckIcon from '@mui/icons-material/Check';
 import { Game, GameStatus } from '@/app/types/game';
 
@@ -102,46 +102,68 @@ export default function Focus({ onStatusChange }: FocusProps) {
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h5" gutterBottom>
-          Currently Active Game
+        <Typography variant="h5" gutterBottom align="center">
+          {activeGame.species_title}
         </Typography>
-        <Typography variant="body1">
-          Title: {activeGame.species_title}
+        
+        {/* 残り時間の表示 */}
+        <Typography 
+          variant="h4" 
+          align="center" 
+          sx={{ mb: 2 }}
+        >
+          {remainingTime || 'Ready to start'}
         </Typography>
-        <Typography variant="body1">
-          Status: {activeGame.status}
-        </Typography>
-        <Typography variant="body1">
-          Remaining Time: {activeGame.remaining_time}
-        </Typography>
-        {/* ... other information display ... */}
+
+        {/* 進捗バー */}
+        <Box sx={{ width: '100%', mb: 3 }}>
+          <LinearProgress 
+            variant="determinate" 
+            value={progress}
+            sx={{
+              height: 10,
+              borderRadius: 5,
+              '& .MuiLinearProgress-bar': {
+                borderRadius: 5,
+              }
+            }}
+          />
+        </Box>
+
+        {/* アクションボタン */}
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <ButtonGroup variant="contained">
+            <Button
+              startIcon={<PlayArrowIcon />}
+              onClick={() => handleStatusChange('HUNTING')}
+              disabled={activeGame.status === 'HUNTING'}
+            >
+              Start
+            </Button>
+            <Button
+              startIcon={<PauseIcon />}
+              onClick={() => handleStatusChange('PENDING')}
+              disabled={activeGame.status === 'PENDING'}
+            >
+              Pause
+            </Button>
+            <Button
+              startIcon={<CheckIcon />}
+              onClick={() => handleStatusChange('CAPTURED')}
+              disabled={activeGame.status === 'CAPTURED'}
+            >
+              Complete
+            </Button>
+            <Button
+              color="error"
+              onClick={() => handleStatusChange('ESCAPED')}
+              disabled={activeGame.status === 'ESCAPED'}
+            >
+              Give Up
+            </Button>
+          </ButtonGroup>
+        </Box>
       </Paper>
-      <ButtonGroup variant="contained">
-        <Button
-          onClick={() => handleStatusChange('HUNTING')}
-          disabled={activeGame.status === 'HUNTING'}
-        >
-          Start Hunting
-        </Button>
-        <Button
-          onClick={() => handleStatusChange('PENDING')}
-          disabled={activeGame.status === 'PENDING'}
-        >
-          Pause
-        </Button>
-        <Button
-          onClick={() => handleStatusChange('CAPTURED')}
-          disabled={activeGame.status === 'CAPTURED'}
-        >
-          Complete
-        </Button>
-        <Button
-          onClick={() => handleStatusChange('ESCAPED')}
-          disabled={activeGame.status === 'ESCAPED'}
-        >
-          Give Up
-        </Button>
-      </ButtonGroup>
     </Box>
   );
 } 
