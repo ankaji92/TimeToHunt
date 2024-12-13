@@ -18,8 +18,8 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { Species, Genus } from '../types/game';
@@ -44,7 +44,7 @@ function SpeciesRow({ species, specieses, level, onEncounter, onAnalyze, onDelet
   // 子Speciesを取得
   React.useEffect(() => {
     setChildSpecieses(specieses.filter((sp) => sp.parent_species === species.id));
-  }, [specieses]);
+  }, [specieses, species]);
 
   return (
     <>
@@ -56,7 +56,7 @@ function SpeciesRow({ species, specieses, level, onEncounter, onAnalyze, onDelet
                 size="small"
                 onClick={() => setOpen(!open)}
               >
-                {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                {open ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
               </IconButton>
             )}
             {!childSpecieses.length && <Box sx={{ width: 28 }} />}
@@ -133,6 +133,8 @@ export default function SpeciesList() {
     fetch(url)
       .then(response => response.json())
       .then(data => setSpecieses(data));
+    console.log(specieses);
+    console.log(selectedGenusId);
   }, [selectedGenusId]);
 
   // 遭遇（新規ゲームインスタンスの作成）

@@ -36,7 +36,8 @@ class Species(models.Model):
         help_text="Priority (1 is highest)"
     )
     estimated_hunting_time = models.DurationField(
-        help_text="Estimated hunting time"
+        default=timedelta(0),
+        help_text="Estimated hunting time",
     )
     is_leaf_species = models.BooleanField(
         default=True,
@@ -79,6 +80,13 @@ class Species(models.Model):
 
 class Game(models.Model):
     species = models.ForeignKey(Species, on_delete=models.CASCADE, related_name='games')
+    parent_game = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='child_games'
+    )
 
     # 時間関連のフィールド
     hunt_start_time = models.DateTimeField()
@@ -107,7 +115,7 @@ class Game(models.Model):
 
     is_active = models.BooleanField(
         default=False,
-        help_text="現在狩猟中のゲームかどうか"
+        help_text="現在狩猟中のゲームかどうか.特に、HUNTINGとは異なり、最も細かいゲームに対して付与される。"
     )
 
     deadline = models.DateTimeField(
@@ -139,26 +147,39 @@ class Game(models.Model):
         return self.deadline - now
 
     def save(self, *args, **kwargs):
-        # statusとis_activeの同期
-        if self.status == 'HUNTING':
+        if self.status == 'HUNTING' and self.child_games.count() == 0:
             self.is_active = True
-        else:
-            self.is_active = False
-
-        # 期限の自動設定
-        if not self.deadline and self.hunt_start_time:
-            self.deadline = self.hunt_start_time + self.estimated_hunting_time
-
-        # アクティブ状態の処理（他のアクティブなゲームを非アクティブにする）
-        if self.is_active:
             Game.objects.filter(
                 is_active=True
             ).exclude(pk=self.pk).update(
-                is_active=False,
-                status='PENDING'
+                is_active=False
             )
+        else:
+            self.is_active = False
+
+        if not self.deadline and self.hunt_start_time:
+            self.deadline = self.hunt_start_time + self.estimated_hunting_time
 
         super().save(*args, **kwargs)
+
+        # 親Gameの状態を更新（parent_gameを使用）
+        if self.parent_game:
+            parent_game = self.parent_game
+            child_games = parent_game.child_games.all()
+            
+            # 状態の伝搬ルール
+            if child_games.filter(status='HUNTING').exists():
+                parent_game.status = 'HUNTING'
+            elif child_games.filter(status='ESCAPED').exists():
+                parent_game.status = 'ESCAPED'
+            elif child_games.exclude(status='CAPTURED').count() == 0:
+                parent_game.status = 'CAPTURED'
+            elif child_games.filter(status='PENDING').exists():
+                parent_game.status = 'PENDING'
+            else:
+                parent_game.status = 'NOT_STARTED'
+            
+            parent_game.save()
 
     def __str__(self):
         return f"{self.species.title} ({self.get_status_display()})"

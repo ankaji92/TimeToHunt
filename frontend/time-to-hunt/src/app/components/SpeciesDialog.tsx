@@ -42,10 +42,10 @@ export default function SpeciesDialog({
     id: editingSpecies?.id || null,
     title: '',
     description: '',
-    genus: defaultGenusId || '',
+    genus_id: defaultGenusId || '',
     priority: 3,
     estimated_hunting_time: '01:00:00',
-    parent_species: editingSpecies?.parent_species || null,
+    parent_species_id: editingSpecies?.parent_species || null,
   });
 
   const [openGenusDialog, setOpenGenusDialog] = React.useState(false);
@@ -57,10 +57,10 @@ export default function SpeciesDialog({
         id: editingSpecies.id,
         title: editingSpecies.title,
         description: editingSpecies.description || '',
-        genus: editingSpecies.genus,
+        genus_id: editingSpecies.genus,
         priority: editingSpecies.priority,
         estimated_hunting_time: editingSpecies.estimated_hunting_time,
-        parent_species: editingSpecies.parent_species || null,
+        parent_species_id: editingSpecies.parent_species || null,
       });
     } else {
       // 新規作成時は初期値にリセット
@@ -68,10 +68,10 @@ export default function SpeciesDialog({
         id: null,
         title: '',
         description: '',
-        genus: defaultGenusId || '',
+        genus_id: defaultGenusId || '',
         priority: 3,
         estimated_hunting_time: '01:00:00',
-        parent_species: parentSpecies?.id || null,
+        parent_species_id: parentSpecies?.id || null,
       });
     }
   }, [editingSpecies, defaultGenusId]);
@@ -81,7 +81,7 @@ export default function SpeciesDialog({
     if (parentSpecies) {
       setSpeciesData(prev => ({
         ...prev,
-        genus: parentSpecies.genus
+        genus_id: parentSpecies.genus
       }));
     }
   }, [parentSpecies]);
@@ -121,8 +121,8 @@ export default function SpeciesDialog({
             <FormControl sx={{ flex: 1 }}>
               <InputLabel>Genus</InputLabel>
               <Select
-                value={speciesData.genus}
-                onChange={(e) => setSpeciesData({ ...speciesData, genus: e.target.value })}
+                value={speciesData.genus_id}
+                onChange={(e) => setSpeciesData({ ...speciesData, genus_id: e.target.value })}
                 disabled={!!parentSpecies}
               >
                 {genera.map((genus) => (

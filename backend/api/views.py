@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from django.utils import timezone
 from .models import Genus, Species, Game
 from .serializers import GenusSerializer, SpeciesSerializer, GameSerializer
+from datetime import datetime
+from django.db.models import Q
 
 
 class GenusViewSet(viewsets.ModelViewSet):
@@ -68,20 +70,48 @@ class GameViewSet(viewsets.ModelViewSet):
     queryset = Game.objects.all()
     serializer_class = GameSerializer
 
+    def create(self, request, *args, **kwargs):
+        # 親Gameを作成
+        response = super().create(request, *args, **kwargs)
+        parent_game = Game.objects.get(id=response.data['id'])
+        parent_species = parent_game.species
+
+        # 子Speciesが存在する場合、子Gameも作成
+        def create_child_games(parent_game, parent_species):
+            for child_species in parent_species.subspecies.all():
+                child_game = Game.objects.create(
+                    species=child_species,
+                    parent_game=parent_game,
+                    hunt_start_time=parent_game.hunt_start_time,
+                    status='NOT_STARTED'
+                )
+                # さらに子がいれば再帰的に作成
+                if not child_species.is_leaf_species:
+                    create_child_games(child_game, child_species)
+
+        if not parent_species.is_leaf_species:
+            create_child_games(parent_game, parent_species)
+
+        # 更新されたデータを返す
+        updated_game = Game.objects.get(id=parent_game.id)
+        return Response(self.serializer_class(updated_game).data)
+
     def get_queryset(self):
         queryset = Game.objects.all()
-        species_id = self.request.query_params.get('species', None)
-        status = self.request.query_params.get('status', None)
-        is_active = self.request.query_params.get('is_active', None)
+        date_str = self.request.query_params.get('date', None)
 
-        if species_id is not None:
-            queryset = queryset.filter(species_id=species_id)
-        if status is not None:
-            queryset = queryset.filter(status=status)
-        if is_active is not None:
-            queryset = queryset.filter(is_active=is_active == 'true')
+        if date_str:
+            # 指定された日付の0時から24時までの範囲で検索
+            target_date = datetime.strptime(date_str, '%Y-%m-%d')
+            start_of_day = timezone.make_aware(target_date)
+            end_of_day = timezone.make_aware(target_date.replace(hour=23, minute=59, second=59))
 
-        return queryset
+            queryset = queryset.filter(
+                Q(hunt_start_time__date=target_date) |  # その日に開始されたゲーム
+                Q(hunt_start_time__lte=end_of_day, deadline__gte=start_of_day)  # その日に実行中のゲーム
+            )
+
+        return queryset.order_by('hunt_start_time')
 
     @action(detail=False)
     def active(self, request):

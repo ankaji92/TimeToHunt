@@ -9,4 +9,5 @@ router.register(r'games', GameViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('active_game/', GameViewSet.as_view({'get': 'active'}), name='active_game'),
 ]

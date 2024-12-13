@@ -30,10 +30,11 @@ class SpeciesSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     species_title = serializers.CharField(source='species.title', read_only=True)
+    species_parent_species = serializers.PrimaryKeyRelatedField(source='species.parent_species', read_only=True)
     estimated_hunting_time = serializers.DurationField(read_only=True)
     remaining_time = serializers.DurationField(read_only=True)
     is_expired = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Game
-        fields = '__all__' 
+        fields = '__all__'

@@ -34,11 +34,12 @@ export default function SimulatePage() {
                 }
             }}
             format="YYYY年MM月DD日"
-            disableFuture
           />
         </LocalizationProvider>
       </Box>
-      <Simulate selectedDate={selectedDate.toDate()} />
+      <Simulate
+        selectedDate={selectedDate.toDate()}
+      />
     </Box>
   );
 } 

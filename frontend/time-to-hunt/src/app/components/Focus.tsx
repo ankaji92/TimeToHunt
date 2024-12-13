@@ -58,7 +58,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
         setRemainingTime(
           `${duration.hours()}:${duration.minutes().toString().padStart(2, '0')}:${duration.seconds().toString().padStart(2, '0')}`
         );
-        setProgress((1 - remaining / estimatedTime) * 100);
+        setProgress((1 - remaining / estimatedTime.asMilliseconds()) * 100);
       }
     }, 1000);
 
