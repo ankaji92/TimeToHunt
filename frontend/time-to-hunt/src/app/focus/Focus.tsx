@@ -5,7 +5,7 @@ import duration from 'dayjs/plugin/duration';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import CheckIcon from '@mui/icons-material/Check';
-import { Game, GameStatus } from '@/app/types/game';
+import { Game, GameStatus } from '@/types/game';
 
 dayjs.extend(duration);
 

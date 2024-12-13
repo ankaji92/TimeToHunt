@@ -23,7 +23,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Game } from '../types/game';
+import { Game } from '../../types/game';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 

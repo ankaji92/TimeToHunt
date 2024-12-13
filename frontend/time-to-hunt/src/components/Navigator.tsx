@@ -27,8 +27,8 @@ export default function Navigator({ ...other }: DrawerProps) {
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton 
-              selected={pathname === '/'}
-              onClick={() => router.push('/')}
+              selected={pathname === '/species'}
+              onClick={() => router.push('/species')}
             >
               <ListItemIcon><DnsRoundedIcon /></ListItemIcon>
               <ListItemText>Species</ListItemText>

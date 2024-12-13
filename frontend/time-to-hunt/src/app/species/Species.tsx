@@ -22,7 +22,7 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { Species, Genus } from '../types/game';
+import { Species, Genus } from '@/types/game';
 import SpeciesDialog from './SpeciesDialog';
 import Genera from './Genera';
 
@@ -133,8 +133,6 @@ export default function SpeciesList() {
     fetch(url)
       .then(response => response.json())
       .then(data => setSpecieses(data));
-    console.log(specieses);
-    console.log(selectedGenusId);
   }, [selectedGenusId]);
 
   // 遭遇（新規ゲームインスタンスの作成）

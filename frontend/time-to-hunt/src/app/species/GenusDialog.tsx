@@ -5,7 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { Genus } from '@/app/types/game';
+import { Genus } from '@/types/game';
 
 interface GenusDialogProps {
   open: boolean;

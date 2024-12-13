@@ -7,7 +7,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ja';
-import Simulate from '../components/Simulate';
+import Simulate from './Simulate';
 
 export default function SimulatePage() {
   const [selectedDate, setSelectedDate] = React.useState<dayjs.Dayjs>(dayjs());

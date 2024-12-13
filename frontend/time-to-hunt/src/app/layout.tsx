@@ -4,8 +4,8 @@ import * as React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { colors } from '@/theme/colors';
-import Navigator from './components/Navigator';
-import Copyright from './components/Copyright';
+import Navigator from '@/components/Navigator';
+import Copyright from '@/components/Copyright';
 import { Box } from '@mui/material';
 
 const theme = createTheme({

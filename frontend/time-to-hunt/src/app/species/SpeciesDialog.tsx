@@ -14,7 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Species, Genus } from '../types/game';
+import { Species, Genus } from '@/types/game';
 import GenusDialog from './GenusDialog';
 
 interface SpeciesDialogProps {

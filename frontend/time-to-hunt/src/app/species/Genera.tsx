@@ -16,7 +16,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import GenusDialog from './GenusDialog';
-import { Genus } from '../types/game';
+import { Genus } from '@/types/game';
 
 interface GeneraProps {
   genera: Genus[];
