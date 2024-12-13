@@ -22,9 +22,13 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import { Species, Genus } from '@/types/game';
+import { Species } from '@/types/species';
+import { Genus } from '@/types/genus';
 import SpeciesDialog from './SpeciesDialog';
 import Genera from './Genera';
+import { speciesApi } from '@/services/api/resources/species';
+import { genusApi } from '@/services/api/resources/genus';
+import { gameApi } from '@/services/api/resources/game';
 
 interface SpeciesRowProps {
   species: Species;
@@ -119,37 +123,24 @@ export default function SpeciesList() {
 
   // ジャンル一覧の取得
   React.useEffect(() => {
-    fetch('http://localhost:8000/api/genera/')
-      .then(response => response.json())
-      .then(data => setGenera(data));
+    genusApi.getAll().then(data => setGenera(data));
   }, []);
 
   // Species一覧の取得
   React.useEffect(() => {
-    const url = selectedGenusId 
-      ? `http://localhost:8000/api/species/?genus=${selectedGenusId}`
-      : 'http://localhost:8000/api/species/';
-    
-    fetch(url)
-      .then(response => response.json())
-      .then(data => setSpecieses(data));
+    (selectedGenusId ? 
+      speciesApi.getByGenusId(selectedGenusId) : 
+      speciesApi.getAll()
+    ).then(data => setSpecieses(data))
   }, [selectedGenusId]);
 
   // 遭遇（新規ゲームインスタンスの作成）
   const handleEncounter = async (speciesId: number) => {
     try {
-      const response = await fetch('http://localhost:8000/api/games/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          species: speciesId,
-          status: 'NOT_STARTED',
-          hunt_start_time: new Date().toISOString(),
-        }),
+      const response = await gameApi.create({
+        species: speciesId,
       });
-      
+
       if (response.ok) {
         const targetSpecies = specieses.find(sp => sp.id === speciesId);
         setEncounterSpecies(targetSpecies || null);
@@ -161,13 +152,10 @@ export default function SpeciesList() {
   };
 
   const refreshSpecieses = () => {
-    const url = selectedGenusId 
-      ? `http://localhost:8000/api/species/?genus=${selectedGenusId}`
-      : 'http://localhost:8000/api/species/';
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => setSpecieses(data));
+    (selectedGenusId ? 
+      speciesApi.getByGenusId(selectedGenusId) : 
+      speciesApi.getAll()
+    ).then(data => setSpecieses(data))
   };
 
   // 分析（子Species追加）ハンドラー
@@ -178,9 +166,7 @@ export default function SpeciesList() {
 
   const handleDelete = async (speciesId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/species/${speciesId}/`, {
-        method: 'DELETE',
-      });
+      const response = await speciesApi.delete(speciesId);
       
       if (response.ok) {
         refreshSpecieses();
@@ -192,20 +178,9 @@ export default function SpeciesList() {
 
   const handleUpdateSpecies = async (speciesData: Species) => {
     try {
-      const url = speciesData.id 
-        ? `http://localhost:8000/api/species/${speciesData.id}/`
-        : 'http://localhost:8000/api/species/';
-
-      const response = await fetch(url, {
-        method: speciesData.id ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...speciesData,
-          parent_species: parentSpecies?.id,
-        }),
-      });
+      const response = speciesData.id ? 
+        await speciesApi.update(speciesData.id, speciesData) : 
+        await speciesApi.create(speciesData);
 
       if (response.ok) {
         refreshSpecieses();

@@ -16,7 +16,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import GenusDialog from './GenusDialog';
-import { Genus } from '@/types/game';
+import { Genus } from '@/types/genus';
+import { genusApi } from '@/services/api/resources/genus';
 
 interface GeneraProps {
   genera: Genus[];
@@ -40,9 +41,7 @@ export default function Genera({
     if (deleteGenusId === null) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/genera/${deleteGenusId}/`, {
-        method: 'DELETE',
-      });
+      const response = await genusApi.delete(deleteGenusId);
       
       if (response.ok) {
         const updatedGenera = genera.filter(g => g.id !== deleteGenusId);

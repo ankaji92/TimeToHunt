@@ -5,12 +5,13 @@ import duration from 'dayjs/plugin/duration';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import CheckIcon from '@mui/icons-material/Check';
+import { gameApi } from '@/services/api/resources/game';
 import { Game, GameStatus } from '@/types/game';
 
 dayjs.extend(duration);
 
 interface FocusProps {
-  onStatusChange: (gameId: number, newStatus: string) => void;
+  onStatusChange: (gameId: number, newStatus: GameStatus) => void;
 }
 
 export default function Focus({ onStatusChange }: FocusProps) {
@@ -20,7 +21,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
 
   const fetchActiveGame = React.useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/active_game/');
+      const response = await gameApi.getActive();
       if (response.ok) {
         const data = await response.json();
         setActiveGame(data);
@@ -41,7 +42,7 @@ export default function Focus({ onStatusChange }: FocusProps) {
     if (!activeGame || activeGame.status !== 'HUNTING') return;
 
     const startTime = dayjs(activeGame.hunt_start_time);
-    const [hours, minutes, seconds] = activeGame.estimated_hunting_time.split(':').map(Number);
+    const [hours, minutes, seconds] = activeGame.estimated_hunting_time?.split(':').map(Number) ?? [0, 0, 0];
     const estimatedTime = dayjs.duration({hours, minutes, seconds});
     const endTime = startTime.add(estimatedTime);
 
@@ -69,19 +70,12 @@ export default function Focus({ onStatusChange }: FocusProps) {
     if (!activeGame) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/games/${activeGame.id}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: newStatus,
-          is_active: newStatus === 'HUNTING',
-        }),
+      const response = await gameApi.update(activeGame.id, {
+        status: newStatus as GameStatus,
       });
 
       if (response.ok) {
-        onStatusChange(activeGame.id, newStatus);
+        onStatusChange(activeGame.id, newStatus as GameStatus);
         fetchActiveGame();  // Re-fetch the active game
       }
     } catch (error) {

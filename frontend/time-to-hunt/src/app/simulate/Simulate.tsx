@@ -23,9 +23,11 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import StopIcon from '@mui/icons-material/Stop';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Game } from '../../types/game';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+
+import { Game } from '@/types/game';
+import { gameApi } from '@/services/api/resources/game';
 
 dayjs.extend(duration);
 
@@ -125,21 +127,13 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   React.useEffect(() => {
     const date = dayjs(selectedDate).format('YYYY-MM-DD');
-    fetch(`http://localhost:8000/api/games/?date=${date}`)
-      .then(response => response.json())
-      .then(data => setGames(data));
+    gameApi.getByDate(date).then(data => setGames(data));
   }, [selectedDate]);
 
   const handleStart = async (gameId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/games/${gameId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: 'HUNTING',
-        }),
+      const response = await gameApi.update(gameId, {
+        status: 'HUNTING',
       });
       
       if (response.ok) {
@@ -153,16 +147,10 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   const handlePause = async (gameId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/games/${gameId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: 'PENDING',
-        }),
+      const response = await gameApi.update(gameId, {
+        status: 'PENDING',
       });
-
+      
       if (response.ok) {
         const updatedGame = await response.json();
         setGames(games.map(g => g.id === gameId ? updatedGame : g));
@@ -174,16 +162,10 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   const handleComplete = async (gameId: number) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/games/${gameId}/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: 'CAPTURED',
-        }),
+      const response = await gameApi.update(gameId, {
+        status: 'CAPTURED',
       });
-
+      
       if (response.ok) {
         const updatedGame = await response.json();
         setGames(games.map(g => g.id === gameId ? updatedGame : g));
@@ -201,12 +183,11 @@ export default function Simulate({ selectedDate }: SimulateProps) {
     if (!deleteGameId) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/games/${deleteGameId}/`, {
-        method: 'DELETE',
-      });
+      const response = await gameApi.delete(deleteGameId);
       
       if (response.ok) {
-        setGames(games.filter(g => g.id !== deleteGameId));
+        const updatedGames = games.filter(g => g.id !== deleteGameId);
+        setGames(updatedGames);
       }
     } catch (error) {
       console.error('Error deleting game:', error);

@@ -5,7 +5,8 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import { Genus } from '@/types/game';
+import { Genus } from '@/types/genus';
+import { genusApi } from '@/services/api/resources/genus';
 
 interface GenusDialogProps {
   open: boolean;
@@ -35,27 +36,17 @@ export default function GenusDialog({ open, onClose, onGeneraChange, genera, edi
 
   const handleSubmit = async (genusData: any) => {
     try {
-      const url = editingGenusId 
-        ? `http://localhost:8000/api/genera/${editingGenusId}/`
-        : 'http://localhost:8000/api/genera/';
-
-      const response = await fetch(url, {
-        method: editingGenusId ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(genusData),
-      });
-      
-      if (response.ok) {
-        fetch('http://localhost:8000/api/genera/')
-          .then(response => response.json())
-          .then(data => onGeneraChange(data));
+      if (editingGenusId) {
+        await genusApi.update(editingGenusId, genusData);
+      } else {
+        await genusApi.create(genusData);
       }
+      const updatedGenera = await genusApi.getAll();
+      onGeneraChange(updatedGenera);
+      onClose();
     } catch (error) {
-      console.error('Error adding new genus:', error);
+      console.error('Error:', error);
     }
-    onClose();
   };
 
   return (

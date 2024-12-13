@@ -14,7 +14,8 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { Species, Genus } from '@/types/game';
+import { Species, SpeciesUpdate } from '@/types/species';
+import { Genus } from '@/types/genus';
 import GenusDialog from './GenusDialog';
 
 interface SpeciesDialogProps {
@@ -38,14 +39,14 @@ export default function SpeciesDialog({
   genera,
   onGeneraChange,
 }: SpeciesDialogProps) {
-  const [speciesData, setSpeciesData] = React.useState({
-    id: editingSpecies?.id || null,
+  const [speciesData, setSpeciesData] = React.useState<SpeciesUpdate>({
+    id: editingSpecies?.id || undefined,
     title: '',
     description: '',
-    genus_id: defaultGenusId || '',
+    genus: defaultGenusId || undefined,
     priority: 3,
     estimated_hunting_time: '01:00:00',
-    parent_species_id: editingSpecies?.parent_species || null,
+    parent_species: editingSpecies?.parent_species || undefined,
   });
 
   const [openGenusDialog, setOpenGenusDialog] = React.useState(false);
@@ -57,21 +58,21 @@ export default function SpeciesDialog({
         id: editingSpecies.id,
         title: editingSpecies.title,
         description: editingSpecies.description || '',
-        genus_id: editingSpecies.genus,
+        genus: editingSpecies.genus,
         priority: editingSpecies.priority,
         estimated_hunting_time: editingSpecies.estimated_hunting_time,
-        parent_species_id: editingSpecies.parent_species || null,
+        parent_species: editingSpecies.parent_species ||undefined,
       });
     } else {
       // 新規作成時は初期値にリセット
       setSpeciesData({
-        id: null,
+        id: undefined,
         title: '',
         description: '',
-        genus_id: defaultGenusId || '',
+        genus: defaultGenusId || undefined,
         priority: 3,
         estimated_hunting_time: '01:00:00',
-        parent_species_id: parentSpecies?.id || null,
+        parent_species: parentSpecies?.id || undefined,
       });
     }
   }, [editingSpecies, defaultGenusId]);
@@ -81,7 +82,7 @@ export default function SpeciesDialog({
     if (parentSpecies) {
       setSpeciesData(prev => ({
         ...prev,
-        genus_id: parentSpecies.genus
+        genus: parentSpecies.genus
       }));
     }
   }, [parentSpecies]);
@@ -121,8 +122,8 @@ export default function SpeciesDialog({
             <FormControl sx={{ flex: 1 }}>
               <InputLabel>Genus</InputLabel>
               <Select
-                value={speciesData.genus_id}
-                onChange={(e) => setSpeciesData({ ...speciesData, genus_id: e.target.value })}
+                value={speciesData.genus}
+                onChange={(e) => setSpeciesData({ ...speciesData, genus: Number(e.target.value) })}
                 disabled={!!parentSpecies}
               >
                 {genera.map((genus) => (
