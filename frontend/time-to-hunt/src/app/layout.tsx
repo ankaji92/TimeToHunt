@@ -10,6 +10,7 @@ import { Box } from '@mui/material';
 
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: colors.primary,
     secondary: colors.secondary,
   },
@@ -29,23 +30,16 @@ export default function RootLayout({
             <Navigator 
               PaperProps={{ style: { width: 256 } }}
             />
-            <Box sx={{ flexGrow: 1, bgcolor: '#eaeff1', minHeight: '100vh' }}>
+            <Box sx={{ flexGrow: 1, minHeight: '100vh' }}>
               <Box
                 component="main"
-                sx={{
-                  flexGrow: 1,
-                  backgroundColor: '#eaeff1',
-                  p: 3,
-                }}
+                sx={{flexGrow: 1, p: 3 }}
               >
               {children}
               </Box>
               <Box
                 component="footer"
-                sx={{
-                  p: 2,
-                  bgcolor: '#eaeff1',
-                }}
+                sx={{ p: 2 }}
               >
                 <Copyright />
               </Box>

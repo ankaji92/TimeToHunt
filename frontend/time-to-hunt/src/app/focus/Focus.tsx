@@ -16,27 +16,22 @@ interface FocusProps {
 
 export default function Focus({ onStatusChange }: FocusProps) {
   const [activeGame, setActiveGame] = React.useState<Game | null>(null);
-  const [remainingTime, setRemainingTime] = React.useState<string>('');
+  const [remainingTime, setRemainingTime] = React.useState<string>('Ready to start');
   const [progress, setProgress] = React.useState<number>(0);
 
-  const fetchActiveGame = React.useCallback(async () => {
+  const fetchActiveGame = async () => {
     try {
-      const response = await gameApi.getActive();
-      if (response.ok) {
-        const data = await response.json();
-        setActiveGame(data);
-      } else {
-        setActiveGame(null);
-      }
+      const data = await gameApi.getActive();
+      setActiveGame(data);
     } catch (error) {
       console.error('Error fetching active game:', error);
       setActiveGame(null);
     }
-  }, []);
+  };
 
   React.useEffect(() => {
     fetchActiveGame();
-  }, [fetchActiveGame]);
+  }, []);
 
   React.useEffect(() => {
     if (!activeGame || activeGame.status !== 'HUNTING') return;
@@ -70,30 +65,19 @@ export default function Focus({ onStatusChange }: FocusProps) {
     if (!activeGame) return;
 
     try {
-      const response = await gameApi.update(activeGame.id, {
+      const data = await gameApi.update(activeGame.id, {
         status: newStatus as GameStatus,
       });
 
-      if (response.ok) {
-        onStatusChange(activeGame.id, newStatus as GameStatus);
-        fetchActiveGame();  // Re-fetch the active game
-      }
+      onStatusChange(activeGame.id, newStatus as GameStatus);
+      fetchActiveGame();  // Re-fetch the active game
     } catch (error) {
       console.error('Error updating game status:', error);
     }
   };
 
-  if (!activeGame) {
-    return (
-      <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography variant="h5">
-          No game currently in focus
-        </Typography>
-      </Box>
-    );
-  }
-
   return (
+    activeGame ? 
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="h5" gutterBottom align="center">
@@ -158,6 +142,12 @@ export default function Focus({ onStatusChange }: FocusProps) {
           </ButtonGroup>
         </Box>
       </Paper>
+    </Box>
+    :
+    <Box sx={{ p: 3, textAlign: 'center' }}>
+      <Typography variant="h5">
+        No game currently in focus
+      </Typography>
     </Box>
   );
 } 

@@ -29,6 +29,7 @@ import Genera from './Genera';
 import { speciesApi } from '@/services/api/resources/species';
 import { genusApi } from '@/services/api/resources/genus';
 import { gameApi } from '@/services/api/resources/game';
+import { GameCreate } from '@/types/game';
 
 interface SpeciesRowProps {
   species: Species;
@@ -137,15 +138,15 @@ export default function SpeciesList() {
   // 遭遇（新規ゲームインスタンスの作成）
   const handleEncounter = async (speciesId: number) => {
     try {
-      const response = await gameApi.create({
+      const gameData: GameCreate = {
         species: speciesId,
-      });
-
-      if (response.ok) {
-        const targetSpecies = specieses.find(sp => sp.id === speciesId);
-        setEncounterSpecies(targetSpecies || null);
-        setSnackbarOpen(true);
       }
+      console.log(gameData);
+      const data = await gameApi.create(gameData);
+
+      const targetSpecies = specieses.find(sp => sp.id === speciesId);
+      setEncounterSpecies(targetSpecies || null);
+      setSnackbarOpen(true);
     } catch (error) {
       console.error('Error creating new encounter:', error);
     }
@@ -166,11 +167,8 @@ export default function SpeciesList() {
 
   const handleDelete = async (speciesId: number) => {
     try {
-      const response = await speciesApi.delete(speciesId);
-      
-      if (response.ok) {
-        refreshSpecieses();
-      }
+      const data = await speciesApi.delete(speciesId);
+      refreshSpecieses();
     } catch (error) {
       console.error('Error deleting species:', error);
     }

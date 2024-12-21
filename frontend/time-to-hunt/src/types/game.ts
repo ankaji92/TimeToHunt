@@ -1,6 +1,6 @@
 export interface Game {
     id: number;
-    species?: number;
+    species: number;
     species_title?: string;
     species_parent_species?: number;
     parent_game?: number;

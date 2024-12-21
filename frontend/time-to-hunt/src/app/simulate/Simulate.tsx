@@ -132,14 +132,11 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   const handleStart = async (gameId: number) => {
     try {
-      const response = await gameApi.update(gameId, {
+      const updatedGame = await gameApi.update(gameId, {
         status: 'HUNTING',
       });
       
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames(games.map(g => g.id === gameId ? updatedGame : g));
-      }
+      setGames(games.map(g => g.id === gameId ? updatedGame : g));
     } catch (error) {
       console.error('Error starting game:', error);
     }
@@ -147,14 +144,11 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   const handlePause = async (gameId: number) => {
     try {
-      const response = await gameApi.update(gameId, {
+      const updatedGame = await gameApi.update(gameId, {
         status: 'PENDING',
       });
       
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames(games.map(g => g.id === gameId ? updatedGame : g));
-      }
+      setGames(games.map(g => g.id === gameId ? updatedGame : g));
     } catch (error) {
       console.error('Error pausing game:', error);
     }
@@ -162,14 +156,11 @@ export default function Simulate({ selectedDate }: SimulateProps) {
 
   const handleComplete = async (gameId: number) => {
     try {
-      const response = await gameApi.update(gameId, {
+      const updatedGame = await gameApi.update(gameId, {
         status: 'CAPTURED',
       });
       
-      if (response.ok) {
-        const updatedGame = await response.json();
-        setGames(games.map(g => g.id === gameId ? updatedGame : g));
-      }
+      setGames(games.map(g => g.id === gameId ? updatedGame : g));
     } catch (error) {
       console.error('Error completing game:', error);
     }
@@ -183,12 +174,9 @@ export default function Simulate({ selectedDate }: SimulateProps) {
     if (!deleteGameId) return;
 
     try {
-      const response = await gameApi.delete(deleteGameId);
-      
-      if (response.ok) {
-        const updatedGames = games.filter(g => g.id !== deleteGameId);
-        setGames(updatedGames);
-      }
+      const data = await gameApi.delete(deleteGameId);
+      const updatedGames = games.filter(g => g.id !== deleteGameId);
+      setGames(updatedGames);
     } catch (error) {
       console.error('Error deleting game:', error);
     }

@@ -9,6 +9,4 @@ export const colors = {
     main: '#f44336',
     dark: '#ba000d',
   },
-  background: '#eaeff1',
-  foreground: '#171717',
 }; 

@@ -89,7 +89,10 @@ class Game(models.Model):
     )
 
     # 時間関連のフィールド
-    hunt_start_time = models.DateTimeField()
+    hunt_start_time = models.DateTimeField(
+        default=timezone.now,
+        help_text="狩猟開始時刻"
+    )
     actual_hunting_time = models.DurationField(
         null=True,
         blank=True,

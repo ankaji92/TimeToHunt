@@ -41,14 +41,12 @@ export default function Genera({
     if (deleteGenusId === null) return;
 
     try {
-      const response = await genusApi.delete(deleteGenusId);
+      const data = await genusApi.delete(deleteGenusId);
       
-      if (response.ok) {
-        const updatedGenera = genera.filter(g => g.id !== deleteGenusId);
-        onGeneraChange(updatedGenera);
-        if (selectedGenusId === deleteGenusId) {
-          onSelectGenus(null);
-        }
+      const updatedGenera = genera.filter(g => g.id !== deleteGenusId);
+      onGeneraChange(updatedGenera);
+      if (selectedGenusId === deleteGenusId) {
+        onSelectGenus(null);
       }
     } catch (error) {
       console.error('Error deleting genus:', error);
