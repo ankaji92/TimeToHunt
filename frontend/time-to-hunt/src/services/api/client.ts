@@ -14,4 +14,4 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
   }
 
   return response.json();
-}; 
+};
